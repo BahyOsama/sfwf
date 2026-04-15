@@ -1,4 +1,5 @@
 name: bahy_developer
+publish_to: none   # <--- أضف هذا السطر
 description: A demo website for Bahy Developer using SFWF.
 version: 1.0.0
 
