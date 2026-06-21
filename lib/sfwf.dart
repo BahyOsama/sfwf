@@ -6,6 +6,7 @@ export 'router/route_definition.dart';
 export 'router/middleware.dart';
 export 'router/guards.dart';
 export 'seo/seo_controller.dart';
+export 'seo/seo_provider.dart';
 export 'seo/sitemap_generator.dart';
 export 'seo/robots_generator.dart';
 export 'ssr/ssr_renderer.dart';

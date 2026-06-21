@@ -1,35 +1,36 @@
 import 'dart:io';
+
 import 'package:xml/xml.dart';
 
 class SitemapGenerator {
   static Future<void> generate(
     String baseUrl,
     List<String> routes,
-    String outputPath,
-  ) async {
-    final urlset = XmlElement(
-      XmlName('urlset'),
-      [
-        XmlAttribute(
-            XmlName('xmlns'), 'http://www.sitemaps.org/schemas/sitemap/0.9')
-      ],
-      [], // children فارغة في البداية
-    );
+    String outputPath, {
+    Map<String, String> priorities = const {},
+    Map<String, String> frequencies = const {},
+  }) async {
+    final builder = XmlBuilder();
+    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+    builder.element('urlset', nest: () {
+      builder.attribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+      for (final route in routes) {
+        builder.element('url', nest: () {
+          builder.element('loc', nest: '$baseUrl$route');
+          builder.element('lastmod', nest: DateTime.now().toIso8601String());
+          builder.element('changefreq',
+              nest: frequencies[route] ?? 'weekly');
+          builder.element('priority',
+              nest: priorities[route] ?? '0.8');
+        });
+      }
+    });
 
-    for (final route in routes) {
-      final loc = XmlElement(XmlName('loc'), [], [XmlText('$baseUrl$route')]);
-      final lastmod = XmlElement(
-          XmlName('lastmod'), [], [XmlText(DateTime.now().toIso8601String())]);
-      final changefreq =
-          XmlElement(XmlName('changefreq'), [], [XmlText('weekly')]);
-      final priority = XmlElement(XmlName('priority'), [], [XmlText('0.8')]);
-
-      final url =
-          XmlElement(XmlName('url'), [], [loc, lastmod, changefreq, priority]);
-      urlset.children.add(url);
+    final doc = builder.buildDocument();
+    final output = Directory(outputPath).parent;
+    if (!await output.exists()) {
+      await output.create(recursive: true);
     }
-
-    final doc = XmlDocument([urlset]);
     await File(outputPath).writeAsString(doc.toXmlString(pretty: true));
   }
 }

@@ -1,12 +1,20 @@
 import 'dart:io';
 
 class RobotsGenerator {
-  static Future<void> generate(String sitemapUrl, String outputPath) async {
-    final content = '''
-User-agent: *
-Allow: /
-Sitemap: $sitemapUrl
-''';
-    await File(outputPath).writeAsString(content);
+  static Future<void> generate(String sitemapUrl, String outputPath,
+      {List<String> disallowPaths = const []}) async {
+    final content = StringBuffer()
+      ..writeln('User-agent: *')
+      ..writeln('Allow: /');
+
+    for (final path in disallowPaths) {
+      content.writeln('Disallow: $path');
+    }
+
+    content.writeln('Sitemap: $sitemapUrl');
+
+    final output = File(outputPath);
+    await output.create(recursive: true);
+    await output.writeAsString(content.toString());
   }
 }

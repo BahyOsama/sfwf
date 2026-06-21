@@ -1,21 +1,56 @@
-import 'dart:developer';
+import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:puppeteer/puppeteer.dart';
 
-Future<void> main() async {
-  final browser = await puppeteer.launch(headless: true);
+Future<void> main(List<String> args) async {
+  final port = int.tryParse(args.firstWhere(
+        (a) => a.startsWith('--port='),
+        orElse: () => '--port=3000',
+      ).split('=').last) ?? 3000;
+
+  final buildDir = Directory('build/web');
+  if (!await buildDir.exists()) {
+    stderr.writeln('Build directory not found. Run `flutter build web` first.');
+    exit(1);
+  }
+
+  stdout.writeln('Launching SSR browser...');
+  final browser = await puppeteer.launch(
+    headless: true,
+    args: ['--no-sandbox', '--disable-gpu'],
+  );
+  stdout.writeln('SSR browser ready');
+
   final router = Router();
 
   router.get('/<.*>', (shelf.Request req) async {
-    final path = req.url.path;
+    final path = req.url.path.isEmpty ? '/index.html' : '/${req.url.path}';
+    final staticFile = File('${buildDir.path}$path');
+
+    if (await staticFile.exists()) {
+      final content = await staticFile.readAsString();
+      return shelf.Response.ok(content, headers: {
+        'content-type': 'text/html',
+        'cache-control': 'public, max-age=3600',
+      });
+    }
+
     final page = await browser.newPage();
     try {
-      await page.goto('http://localhost:8080$path', wait: Until.networkIdle);
+      await page.goto('http://localhost:8080/${req.url.path}',
+          wait: Until.networkIdle);
       final content = await page.content;
-      return shelf.Response.ok(content, headers: {'content-type': 'text/html'});
+      return shelf.Response.ok(content ?? '', headers: {
+        'content-type': 'text/html',
+        'cache-control': 'public, max-age=300',
+      });
+    } catch (e) {
+      return shelf.Response.internalServerError(
+        body: 'SSR Error: $e',
+      );
     } finally {
       await page.close();
     }
@@ -24,6 +59,15 @@ Future<void> main() async {
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
       .addHandler(router.call);
-  final server = await io.serve(handler, 'localhost', 3000);
-  log('Dart SSR server on http://${server.address.host}:${server.port}');
+
+  final server = await io.serve(handler, 'localhost', port);
+  stdout.writeln('SFWF SSR server running on http://${server.address.host}:${server.port}');
+
+  // Graceful shutdown
+  ProcessSignal.sigint.watch().listen((_) async {
+    stdout.writeln('\nShutting down...');
+    await browser.close();
+    await server.close();
+    exit(0);
+  });
 }

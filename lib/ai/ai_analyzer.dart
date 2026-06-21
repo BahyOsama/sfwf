@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+import 'ai_suggestions.dart';
 
 class AIAnalyzer {
   final String? openAiKey;
@@ -7,19 +9,32 @@ class AIAnalyzer {
   AIAnalyzer({this.openAiKey});
 
   Future<AIReport> analyzePage(String htmlContent, String url) async {
-    final report = AIReport();
+    final report = AIReport(url: url);
+
     if (!htmlContent.contains('<meta name="description"')) {
       report.suggestions.add('Missing meta description tag');
     }
     if (!htmlContent.contains('<h1')) {
       report.suggestions.add('No H1 heading found');
     }
-    if (!htmlContent.contains('<img alt=')) {
+    if (!htmlContent.contains('<img alt=') &&
+        !htmlContent.contains('<img alt="')) {
       report.suggestions.add('Some images missing alt attributes');
     }
     if (htmlContent.length < 500) {
       report.suggestions.add('Page content is too short (<500 chars)');
     }
+    if (!htmlContent.contains('<title>')) {
+      report.suggestions.add('Missing <title> tag');
+    }
+    if (!htmlContent.contains('og:title')) {
+      report.suggestions.add('Missing Open Graph meta tags');
+    }
+    if (!htmlContent.contains('viewport')) {
+      report.suggestions.add('Missing viewport meta tag');
+    }
+
+    report.score = '${(1 - report.suggestions.length / 10) * 100}%';
 
     if (openAiKey != null && openAiKey!.isNotEmpty) {
       try {
@@ -29,6 +44,7 @@ class AIAnalyzer {
         report.aiSuggestions = 'AI analysis failed: $e';
       }
     }
+
     return report;
   }
 
@@ -52,21 +68,11 @@ class AIAnalyzer {
         'max_tokens': 300,
       }),
     );
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'];
-    } else {
-      return 'OpenAI API error: ${response.statusCode}';
     }
-  }
-}
-
-class AIReport {
-  List<String> suggestions = [];
-  String? aiSuggestions;
-
-  @override
-  String toString() {
-    return 'Suggestions:\n${suggestions.map((s) => '- $s').join('\n')}\n\nAI:\n$aiSuggestions';
+    return 'OpenAI API error: ${response.statusCode}';
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
+import 'package:universal_html/html.dart' as html;
 
 enum DeviceType { mobile, tablet, desktop }
 
@@ -14,12 +14,16 @@ class DeviceDetector {
     if (_cachedType != null) return _cachedType!;
     if (!kIsWeb) return DeviceType.desktop;
 
-    final userAgent = html.window.navigator.userAgent.toLowerCase();
-    if (userAgent.contains('mobile')) {
-      _cachedType = DeviceType.mobile;
-    } else if (userAgent.contains('tablet')) {
-      _cachedType = DeviceType.tablet;
-    } else {
+    try {
+      final userAgent = html.window.navigator.userAgent.toLowerCase();
+      if (userAgent.contains('mobile')) {
+        _cachedType = DeviceType.mobile;
+      } else if (userAgent.contains('tablet')) {
+        _cachedType = DeviceType.tablet;
+      } else {
+        _cachedType = DeviceType.desktop;
+      }
+    } catch (_) {
       _cachedType = DeviceType.desktop;
     }
     return _cachedType!;

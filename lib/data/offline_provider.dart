@@ -6,12 +6,18 @@ class OfflineProvider {
     final cached = CacheManager.instance.get(url);
     if (cached != null) return cached;
 
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = response.body;
-      CacheManager.instance.set(url, data, ttl: ttl);
-      return data;
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = response.body;
+        CacheManager.instance.set(url, data, ttl: ttl);
+        return data;
+      }
+      throw Exception('Failed to load data: ${response.statusCode}');
+    } catch (e) {
+      final cached = CacheManager.instance.get(url);
+      if (cached != null) return cached;
+      rethrow;
     }
-    throw Exception('Failed to load data');
   }
 }

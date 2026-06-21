@@ -1,10 +1,10 @@
 name: bahy_developer
-publish_to: none   # <--- أضف هذا السطر
+publish_to: none
 description: A demo website for Bahy Developer using SFWF.
 version: 1.0.0
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:

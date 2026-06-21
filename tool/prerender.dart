@@ -1,15 +1,24 @@
-import 'dart:developer';
 import 'dart:io';
+
 import 'package:puppeteer/puppeteer.dart';
 
 Future<void> main(List<String> args) async {
-  final routes = args.isNotEmpty ? args : ['/', '/about'];
-  final baseUrl = 'http://localhost:8080';
+  final routes = args.isNotEmpty ? args : <String>['/', '/about'];
+  const baseUrl = 'http://localhost:8080';
   final outputDir = Directory('build/web');
 
-  final browser = await puppeteer.launch(headless: true);
+  if (!await outputDir.exists()) {
+    stderr.writeln('❌ Build directory not found. Run `flutter build web` first.');
+    exit(1);
+  }
+
+  stdout.writeln('🚀 Starting pre-rendering for ${routes.length} routes...');
+  final browser = await puppeteer.launch(headless: true, args: ['--no-sandbox']);
+  int success = 0;
+  int failed = 0;
+
   for (final route in routes) {
-    log('📄 Pre-rendering $route');
+    stdout.writeln('📄 Pre-rendering $route');
     final page = await browser.newPage();
     try {
       await page.goto('$baseUrl$route', wait: Until.networkIdle);
@@ -17,13 +26,17 @@ Future<void> main(List<String> args) async {
       final routePath = route == '/' ? '' : route;
       final file = File('${outputDir.path}$routePath/index.html');
       await file.create(recursive: true);
-      await file.writeAsString(content!);
+      await file.writeAsString(content ?? '');
+      stdout.writeln('  ✅ Saved to ${file.path}');
+      success++;
     } catch (e) {
-      log('❌ Error pre-rendering $route: $e');
+      stderr.writeln('  ❌ Error pre-rendering $route: $e');
+      failed++;
     } finally {
       await page.close();
     }
   }
+
   await browser.close();
-  log('✅ Pre-rendering completed.');
+  stdout.writeln('✅ Pre-rendering completed. $success succeeded, $failed failed.');
 }

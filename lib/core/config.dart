@@ -9,6 +9,7 @@ class SFWFConfig {
   final String? openAiApiKey;
   final List<Locale> supportedLocales;
   final Duration cacheDuration;
+  final bool enablePwa;
 
   const SFWFConfig({
     required this.appName,
@@ -19,6 +20,7 @@ class SFWFConfig {
     this.openAiApiKey,
     this.supportedLocales = const [Locale('en')],
     this.cacheDuration = const Duration(minutes: 5),
+    this.enablePwa = true,
   });
 }
 
@@ -31,7 +33,7 @@ class SeoDefaults {
   const SeoDefaults({
     this.titleSuffix = ' | SFWF',
     this.defaultDescription =
-        'Built with Smart Flutter Web Framework -超越 JS/TS',
+        'Built with Smart Flutter Web Framework',
     this.defaultImage = '/default-og.png',
     this.twitterHandle = '@sfwf',
   });

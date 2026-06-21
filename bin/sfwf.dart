@@ -1,7 +1,7 @@
 #!/usr/bin/env dart
 
-import 'dart:developer';
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:sfwf/ai/ai_analyzer.dart';
 import 'package:sfwf/prerender/prerender_cli.dart';
@@ -19,17 +19,23 @@ Future<void> main(List<String> arguments) async {
     ..addOption('port',
         abbr: 'P', help: 'Port for serve command', defaultsTo: '3000')
     ..addOption('base-url',
-        help: 'Base URL for sitemap', defaultsTo: 'https://example.com');
+        help: 'Base URL for sitemap', defaultsTo: 'https://example.com')
+    ..addFlag('help', abbr: 'h', help: 'Show help', defaultsTo: false);
 
   final results = parser.parse(arguments);
   final command =
       results.arguments.isNotEmpty ? results.arguments.first : 'help';
 
+  if (results['help'] as bool) {
+    _printHelp();
+    return;
+  }
+
   switch (command) {
     case 'create':
       if (results.arguments.length < 2) {
-        log('Usage: sfwf create <project_name>');
-        return;
+        stderr.writeln('Usage: sfwf create <project_name>');
+        exit(1);
       }
       await _createProject(results.arguments[1]);
       break;
@@ -61,8 +67,8 @@ Future<void> main(List<String> arguments) async {
 }
 
 void _printHelp() {
-  log('''
-🚀 Smart Flutter Web Framework (SFWF) CLI -超越 JS/TS 的终极方案
+  stdout.writeln('''
+Smart Flutter Web Framework (SFWF) CLI v2.0.0
 
 Usage:
   sfwf create <name>          Create a new SFWF project
@@ -81,14 +87,14 @@ Examples:
 Future<void> _createProject(String name) async {
   final projectDir = Directory(name);
   if (await projectDir.exists()) {
-    log('❌ Directory "$name" already exists.');
-    return;
+    stderr.writeln('Directory "$name" already exists.');
+    exit(1);
   }
   await projectDir.create();
   await _createDirectoryStructure(projectDir);
   await _writeTemplateFiles(projectDir);
-  log('✅ Project "$name" created successfully!');
-  log('Next steps:\n  cd $name\n  flutter pub get\n  sfwf build');
+  stdout.writeln('Project "$name" created successfully!');
+  stdout.writeln('Next steps:\n  cd $name\n  flutter pub get\n  sfwf build');
 }
 
 Future<void> _createDirectoryStructure(Directory base) async {
@@ -100,8 +106,8 @@ Future<void> _createDirectoryStructure(Directory base) async {
 }
 
 Future<void> _writeTemplateFiles(Directory base) async {
-  final name = base.path.split('/').last;
-  // pubspec.yaml
+  final name = base.path.split(Platform.isWindows ? '\\' : '/').last;
+
   await File('${base.path}/pubspec.yaml').writeAsString('''
 name: $name
 description: A new SFWF project.
@@ -121,7 +127,7 @@ flutter:
   assets:
     - assets/images/
 ''');
-  // lib/main.dart
+
   await File('${base.path}/lib/main.dart').writeAsString('''
 import 'package:flutter/material.dart';
 import 'package:sfwf/sfwf.dart';
@@ -133,44 +139,57 @@ void main() {
     baseUrl: 'https://yourdomain.com',
     seoDefaults: const SeoDefaults(
       titleSuffix: ' | $name',
-      defaultDescription: 'Built with SFWF -超越 JS/TS',
+      defaultDescription: 'Built with Smart Flutter Web Framework',
     ),
     ssrMode: SsrMode.hybrid,
     enableAI: false,
   );
 
-  runApp(ProviderScope(child: SFWFApp(
-    config: config,
-    routes: {
-      '/': (ctx) => const HomePage(),
-      '/about': (ctx) => const AboutPage(),
-    },
-  )));
+  runApp(ProviderScope(
+    child: SFWFApp(
+      config: config,
+      routes: {
+        '/': (ctx) => const HomePage(),
+        '/about': (ctx) => const AboutPage(),
+      },
+    ),
+  ));
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final seo = SeoController.of(context);
-    seo.updatePage(const SeoData(title: 'الصفحة الرئيسية', description: 'أسرع تجربة ويب مع Flutter'));
+    seo.updatePage(const SeoData(
+      title: 'Home',
+      description: 'Welcome to my SFWF website',
+    ));
     return Scaffold(
-      appBar: AppBar(title: const Text('مرحباً في SFWF')),
-      body: const Center(child: Text('أداء خرافي، SEO مثالي، تجربة مستخدم لا تُقهر!')),
+      appBar: AppBar(title: const Text('Welcome to SFWF')),
+      body: const Center(child: Text('High performance, perfect SEO, unmatched UX!')),
     );
   }
 }
 
 class AboutPage extends StatelessWidget {
-  const AboutPage({Key? key}) : super(key: key);
+  const AboutPage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    SeoController.of(context).updatePage(const SeoData(title: 'حول', description: 'تعرف على قوة SFWF'));
-    return Scaffold(appBar: AppBar(title: const Text('حول')), body: const Center(child: Text('هذا الإطار يفوق JavaScript بمراحل')));
+    SeoController.of(context).updatePage(const SeoData(
+      title: 'About',
+      description: 'Learn about the power of SFWF',
+    ));
+    return Scaffold(
+      appBar: AppBar(title: const Text('About')),
+      body: const Center(child: Text('SFWF goes beyond JavaScript')),
+    );
   }
 }
 ''');
-  // web/index.html template with hydration script
+
   await File('${base.path}/web/index.html').writeAsString('''
 <!DOCTYPE html>
 <html>
@@ -179,7 +198,6 @@ class AboutPage extends StatelessWidget {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SFWF App</title>
   <script>
-    // Hydration state placeholder
     window.__SFWF_STATE__ = null;
   </script>
 </head>
@@ -190,64 +208,60 @@ class AboutPage extends StatelessWidget {
 ''');
 }
 
-Future<void> _build(
-    {bool prerender = false,
-    bool analyze = false,
-    bool optimizeImages = false,
-    bool generateSw = false}) async {
-  log('🔨 Building Flutter web app...');
+Future<void> _build({
+  bool prerender = false,
+  bool analyze = false,
+  bool optimizeImages = false,
+  bool generateSw = false,
+}) async {
+  stdout.writeln('Building Flutter web app...');
   final result = await Process.run('flutter', ['build', 'web', '--release']);
   if (result.exitCode != 0) {
-    log('❌ Build failed: ${result.stderr}');
-    return;
+    stderr.writeln('Build failed: ${result.stderr}');
+    exit(1);
   }
-  log('✅ Build complete.');
+  stdout.writeln('Build complete.');
 
   if (optimizeImages) {
-    log('🖼️ Optimizing images...');
-    await ImageOptimizer.optimizeAll(
-        'assets/images', 'build/web/assets/images');
+    stdout.writeln('Optimizing images...');
+    await ImageOptimizer.optimizeAll('assets/images', 'build/web/assets/images');
   }
   if (prerender) {
-    log('📄 Pre-rendering routes...');
-    await PrerenderCli.prerenderRoutes(
-        ['/', '/about'], 'http://localhost:8080', 'build/web');
+    stdout.writeln('Pre-rendering routes...');
+    await PrerenderCli.prerenderRoutes(['/', '/about'], 'http://localhost:8080', 'build/web');
   }
   if (generateSw) {
-    log('⚙️ Generating Service Worker...');
+    stdout.writeln('Generating Service Worker...');
     await ServiceWorkerGenerator.generate('build/web');
   }
   if (analyze) {
     await _analyze();
   }
-  log('🎉 Build complete. Output in build/web/');
+  stdout.writeln('Build complete. Output in build/web/');
 }
 
 Future<void> _serve({int port = 3000}) async {
-  log('🌐 Starting SFWF SSR server on port $port...');
-  // Use Node.js server by default (more stable)
+  stdout.writeln('Starting SFWF SSR server on port $port...');
   await Process.start('node', ['server/node_server.js', '--port=$port'],
       runInShell: true);
 }
 
 Future<void> _analyze() async {
-  log('🤖 Running AI analysis...');
-  final analyzer =
-      AIAnalyzer(openAiKey: Platform.environment['OPENAI_API_KEY']);
+  stdout.writeln('Running AI analysis...');
+  final analyzer = AIAnalyzer(openAiKey: Platform.environment['OPENAI_API_KEY']);
   final htmlFile = File('build/web/index.html');
   if (await htmlFile.exists()) {
     final html = await htmlFile.readAsString();
     final report = await analyzer.analyzePage(html, '/');
-    log(report as String);
+    stdout.writeln(report.toString());
   } else {
-    log('⚠️ No built site found. Run `sfwf build` first.');
+    stderr.writeln('No built site found. Run `sfwf build` first.');
   }
 }
 
 Future<void> _generateSitemap(String baseUrl) async {
-  final routes = ['/', '/about']; // يمكن قراءتها من ملف التوجيهات تلقائياً
+  final routes = ['/', '/about'];
   await SitemapGenerator.generate(baseUrl, routes, 'build/web/sitemap.xml');
-  await RobotsGenerator.generate(
-      '$baseUrl/sitemap.xml', 'build/web/robots.txt');
-  log('✅ Sitemap and robots.txt generated in build/web/');
+  await RobotsGenerator.generate('$baseUrl/sitemap.xml', 'build/web/robots.txt');
+  stdout.writeln('Sitemap and robots.txt generated in build/web/');
 }
