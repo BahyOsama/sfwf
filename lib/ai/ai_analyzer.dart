@@ -3,11 +3,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'ai_suggestions.dart';
 
+/// Analyzes HTML pages for SEO issues and optionally provides AI recommendations.
 class AIAnalyzer {
+  /// Optional OpenAI API key for AI-powered suggestions.
   final String? openAiKey;
 
+  /// Creates an [AIAnalyzer] with an optional [openAiKey].
   AIAnalyzer({this.openAiKey});
 
+  /// Analyzes [htmlContent] from [url] and returns an [AIReport] with suggestions.
   Future<AIReport> analyzePage(String htmlContent, String url) async {
     final report = AIReport(url: url);
 

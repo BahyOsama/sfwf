@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
+/// Optimizes and resizes images in bulk for improved performance.
 class ImageOptimizer {
+  /// Recursively optimizes all images from [inputDir] into [outputDir].
   static Future<void> optimizeAll(String inputDir, String outputDir,
       {int maxWidth = 1200, int quality = 85}) async {
     final input = Directory(inputDir);

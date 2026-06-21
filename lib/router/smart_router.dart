@@ -3,16 +3,33 @@ import 'package:sfwf/core/config.dart';
 import 'package:sfwf/router/middleware.dart';
 import 'package:sfwf/router/route_definition.dart';
 
+/// Central router that manages navigation and route matching.
 class SmartRouter {
+  /// A map of named route builders.
   final Map<String, WidgetBuilder> routes;
+
+  /// The application configuration.
   final SFWFConfig config;
+
+  /// Route definitions with parameterized patterns.
   final List<RouteDefinition> routeDefinitions;
+
+  /// Optional builder for the 404 not-found page.
   final WidgetBuilder? notFoundBuilder;
+
+  /// Custom page transition builders keyed by route name.
   final Map<String, RouteTransitionsBuilder>? customTransitions;
+
+  /// The router delegate used by [MaterialApp.router].
   late final RouterDelegate<RoutePath> routerDelegate;
+
+  /// The route information parser.
   late final RouteInformationParser<RoutePath> routeParser;
+
+  /// The back button dispatcher.
   late final BackButtonDispatcher backDispatcher;
 
+  /// Creates a [SmartRouter] and initializes its delegate and parser.
   SmartRouter({
     required this.routes,
     required this.config,
@@ -31,17 +48,26 @@ class SmartRouter {
   }
 }
 
+/// Represents a parsed route with path, parameters, and query parameters.
 class RoutePath {
+  /// The route path string.
   final String path;
+
+  /// Path parameters extracted from the route pattern.
   final Map<String, String> params;
+
+  /// Query parameters from the URL.
   final Map<String, String> queryParams;
 
+  /// Creates a [RoutePath] with the given path and optional parameters.
   const RoutePath(this.path,
       {this.params = const {}, this.queryParams = const {}});
 
   @override
+  /// Returns a string representation of this route path.
   String toString() => 'RoutePath($path, $params, $queryParams)';
 
+  /// Creates a copy of this [RoutePath] with the given fields replaced.
   RoutePath copyWith({
     String? path,
     Map<String, String>? params,
@@ -219,11 +245,18 @@ class _SmartRouterDelegate extends RouterDelegate<RoutePath>
       _currentPath ?? const RoutePath('/');
 }
 
+/// Holds the result of a successful route pattern match.
 class RouteMatch {
+  /// The matched route name.
   final String name;
+
+  /// The original path that was matched.
   final String? originalPath;
+
+  /// Parameters extracted from the matched route pattern.
   final Map<String, String> params;
 
+  /// Creates a [RouteMatch] with the matched name and optional parameters.
   const RouteMatch(this.name, {this.originalPath, this.params = const {}});
 }
 

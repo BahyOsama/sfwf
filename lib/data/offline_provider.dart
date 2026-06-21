@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'cache_manager.dart';
 
+/// Provides offline-first network requests with cached fallback.
 class OfflineProvider {
+  /// Fetches from network, caching the response; returns cached data on failure.
   static Future<dynamic> fetchOrCache(String url, Duration ttl) async {
     final cached = CacheManager.instance.get(url);
     if (cached != null) return cached;

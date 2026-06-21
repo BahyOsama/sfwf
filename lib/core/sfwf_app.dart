@@ -6,16 +6,33 @@ import 'package:sfwf/router/smart_router.dart';
 import 'package:sfwf/router/route_definition.dart';
 import 'lifecycle.dart';
 
+/// The root widget of an SFWF application.
 class SFWFApp extends StatefulWidget {
+  /// The application configuration.
   final SFWFConfig config;
+
+  /// A map of named route builders.
   final Map<String, WidgetBuilder> routes;
+
+  /// Optional lifecycle hooks called on app state changes.
   final List<AppLifecycleHook>? lifecycleHooks;
+
+  /// Optional route definitions with parameter patterns.
   final List<RouteDefinition>? routeDefinitions;
+
+  /// The application theme.
   final ThemeData? theme;
+
+  /// Builder for the 404 not-found page.
   final WidgetBuilder? notFoundBuilder;
+
+  /// Custom page transition builders keyed by route name.
   final Map<String, RouteTransitionsBuilder>? customTransitions;
+
+  /// An optional wrapper widget applied around the entire app.
   final Widget Function(Widget child)? appWrapper;
 
+  /// Creates a new [SFWFApp] with the given configuration.
   const SFWFApp({
     super.key,
     required this.config,
@@ -29,6 +46,7 @@ class SFWFApp extends StatefulWidget {
   });
 
   @override
+  /// Creates the mutable state for this widget.
   State<SFWFApp> createState() => _SFWFAppState();
 }
 

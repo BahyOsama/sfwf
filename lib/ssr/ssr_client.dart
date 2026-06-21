@@ -5,11 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:sfwf/seo/seo_controller.dart';
 import 'package:universal_html/html.dart' as html;
 
+/// Client-side helper for hydrating SEO data from server-rendered state.
 class SsrClient {
+  /// The [SeoController] used to update page metadata after hydration.
   final SeoController seoController;
 
+  /// Creates an [SsrClient] with the required [seoController].
   SsrClient({required this.seoController});
 
+  /// Hydrates SEO data from the server-rendered HTML state and meta tags.
   void hydrate() {
     if (!kIsWeb) return;
     try {

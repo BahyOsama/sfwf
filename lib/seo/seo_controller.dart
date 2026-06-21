@@ -6,22 +6,28 @@ import 'package:sfwf/core/config.dart';
 import 'package:universal_html/html.dart' as html;
 import 'seo_provider.dart';
 
+/// Manages SEO metadata for the application and notifies listeners on changes.
 class SeoController extends ChangeNotifier {
+  /// The application configuration used for SEO defaults.
   final SFWFConfig config;
   SeoData _currentData = const SeoData();
 
+  /// Creates a [SeoController] with the given [config].
   SeoController({required this.config});
 
+  /// Retrieves the [SeoController] from the widget tree via [SeoControllerProvider].
   static SeoController of(BuildContext context) {
     return SeoControllerProvider.of(context);
   }
 
+  /// Updates the current SEO data by merging with [data] and applying changes to the DOM.
   void updatePage(SeoData data) {
     _currentData = _currentData.merge(data);
     _applyToDom();
     notifyListeners();
   }
 
+  /// The currently active SEO data for the page.
   SeoData get currentData => _currentData;
 
   void _applyToDom() {
@@ -120,24 +126,38 @@ class SeoController extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Updates the theme color meta tag in the SEO data.
   void setThemeColor(String color) {
     updatePage(SeoData(themeColor: color));
   }
 }
 
+/// Holds SEO metadata values for a page, including title, description, and Open Graph tags.
 class SeoData {
+  /// The page title used for the `<title>` tag and Open Graph.
   final String? title;
+  /// The meta description for the page.
   final String? description;
+  /// The URL of the page's Open Graph image.
   final String? image;
+  /// The Open Graph type (e.g. 'website', 'article').
   final String? ogType;
+  /// The Twitter card type (e.g. 'summary_large_image').
   final String? twitterCard;
+  /// Comma-separated keywords for the meta keywords tag.
   final String? keywords;
+  /// The theme color for browser UI and meta tags.
   final String? themeColor;
+  /// The canonical URL for the page.
   final String? canonicalUrl;
+  /// The locale/language code for Open Graph.
   final String? locale;
+  /// Whether the page should be marked noindex, nofollow.
   final bool? noIndex;
+  /// JSON-LD structured data for rich search results.
   final Map<String, dynamic>? structuredData;
 
+  /// Creates a [SeoData] with the given optional SEO fields.
   const SeoData({
     this.title,
     this.description,
@@ -152,6 +172,7 @@ class SeoData {
     this.structuredData,
   });
 
+  /// Merges this [SeoData] with [other], using [other]'s non-null values as overrides.
   SeoData merge(SeoData other) => SeoData(
         title: other.title ?? title,
         description: other.description ?? description,

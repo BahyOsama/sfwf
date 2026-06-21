@@ -1,6 +1,8 @@
 import 'dart:io';
 
+/// CLI utility for pre-rendering static routes for SEO.
 class PrerenderCli {
+  /// Pre-renders the given [routes] from [baseUrl] into [outputDir].
   static Future<void> prerenderRoutes(
       List<String> routes, String baseUrl, String outputDir) async {
     const toolPath = 'tool/prerender.dart';

@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:xml/xml.dart';
 
+/// Generates an XML sitemap file for the given routes.
 class SitemapGenerator {
+  /// Generates a sitemap.xml file at [outputPath] for the given [routes].
   static Future<void> generate(
     String baseUrl,
     List<String> routes,
