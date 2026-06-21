@@ -1,3 +1,12 @@
+## 2.0.1
+
+- Fix WASM compatibility (conditional `dart:io` in service_worker.dart)
+- Fix `setState()` during build in SeoControllerProvider
+- Fix RenderFlex overflow in example cards (adjusted aspect ratios)
+- Update dependencies: `mime ^2.0.0`, `xml ^7.0.1`
+- Add comprehensive dartdoc comments to all public API
+- Package now achieves 160/160 pub points
+
 ## 2.0.0
 
 ### Major improvements
