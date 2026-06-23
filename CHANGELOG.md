@@ -1,3 +1,21 @@
+## 2.0.2
+
+- Fix conditional `dart:io` in image_optimizer.dart (WASM compatibility)
+- Fix conditional `puppeteer` import in ssr_renderer.dart (Android/iOS support)
+- Fix homepage URL (sfwf.dev → GitHub)
+- Fix `setState()` during build in SeoControllerProvider
+- Complete enterprise production-ready example:
+  - Add web/index.html + manifest.json (PWA)
+  - Fix contact form with real HTTP POST, proper email validation
+  - Fix blog page with working onTap navigation
+  - Fix 404 page with AppLayout + SEO
+  - Fix layout back button (pushNamed not pushNamedAndRemoveUntil)
+  - Fix project detail fallback as static const
+  - Remove dead code (seoTitle param)
+  - Add blog detail page
+  - Add widget test
+  - Show contact info on all platforms
+
 ## 2.0.1
 
 - Fix WASM compatibility (conditional `dart:io` in service_worker.dart)

@@ -4,6 +4,7 @@ import 'package:sfwf/sfwf.dart';
 import 'pages/home_page.dart';
 import 'pages/projects_page.dart';
 import 'pages/blog_page.dart';
+import 'pages/blog_detail_page.dart';
 import 'pages/contact_page.dart';
 import 'pages/not_found_page.dart';
 import 'pages/project_detail_page.dart';
@@ -11,12 +12,12 @@ import 'pages/project_detail_page.dart';
 void main() {
   const config = SFWFConfig(
     appName: 'SFWF Showcase',
-    baseUrl: 'https://sfwf.dev',
+    baseUrl: 'https://github.com/BahyOsama/sfwf',
     seoDefaults: SeoDefaults(
       titleSuffix: ' | SFWF Showcase',
       defaultDescription:
           'A production-ready Flutter web app built with Smart Flutter Web Framework - SEO, SSR, PWA.',
-      defaultImage: 'https://sfwf.dev/og-image.png',
+      defaultImage: 'https://github.com/BahyOsama/sfwf/og-image.png',
       twitterHandle: '@sfwf',
     ),
     ssrMode: SsrMode.hybrid,
@@ -34,15 +35,20 @@ void main() {
           '/projects': (ctx) => const ProjectsPage(),
           '/blog': (ctx) => const BlogPage(),
           '/contact': (ctx) => const ContactPage(),
-          '/project-detail': (ctx) {
+          '/projects/:id': (ctx) {
             final args = ModalRoute.of(ctx)?.settings.arguments;
             final params = args is Map<String, String> ? args : <String, String>{};
-            final id = params['id'] ?? '0';
-            return ProjectDetailPage(projectId: id);
+            return ProjectDetailPage(projectId: params['id'] ?? '0');
+          },
+          '/blog/:slug': (ctx) {
+            final args = ModalRoute.of(ctx)?.settings.arguments;
+            final params = args is Map<String, String> ? args : <String, String>{};
+            return BlogDetailPage(postId: params['slug'] ?? '0');
           },
         },
         routeDefinitions: [
-          const RouteDefinition(path: '/projects/:id', name: '/project-detail'),
+          const RouteDefinition(path: '/projects/:id', name: '/projects/:id'),
+          const RouteDefinition(path: '/blog/:slug', name: '/blog/:slug'),
         ],
         notFoundBuilder: (ctx) => const NotFoundPage(),
         customTransitions: {

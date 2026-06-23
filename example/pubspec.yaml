@@ -12,6 +12,7 @@ dependencies:
   sfwf:
     path: ../
   flutter_riverpod: ^3.3.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

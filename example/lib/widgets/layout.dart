@@ -3,12 +3,10 @@ import 'package:sfwf/sfwf.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget child;
-  final String? seoTitle;
 
   const AppLayout({
     super.key,
     required this.child,
-    this.seoTitle,
   });
 
   @override
@@ -140,7 +138,7 @@ class AppLayout extends StatelessWidget {
 
   void _navigateTo(BuildContext context, int index) {
     final routes = ['/', '/projects', '/blog', '/contact'];
-    Navigator.pushNamedAndRemoveUntil(context, routes[index], (_) => false);
+    Navigator.pushNamed(context, routes[index]);
   }
 }
 
@@ -153,7 +151,7 @@ Widget _drawerItem(
     selected: isSelected,
     onTap: () {
       Navigator.pop(context);
-      Navigator.pushNamedAndRemoveUntil(context, route, (_) => false);
+      Navigator.pushNamed(context, route);
     },
   );
 }

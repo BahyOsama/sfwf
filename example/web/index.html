@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3f51b5">
+  <title>SFWF Showcase</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function () {
+      const serviceWorkerSettings = {
+        serviceWorkerVersion: 'v2',
+      };
+      const loading = document.createElement('div');
+      loading.id = 'loading';
+      loading.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666';
+      loading.textContent = 'Loading...';
+      document.body.appendChild(loading);
+
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isDesktop = !/mobile|android|iphone|ipad|ipod/i.test(userAgent);
+
+      _flutter.loader.loadEntryPoint({
+        serviceWorker: serviceWorkerSettings,
+        onEntrypointLoaded: async function(engineInitializer) {
+          document.getElementById('loading')?.remove();
+          const appRunner = await engineInitializer.initializeEngine({
+            useColorEmoji: true,
+            hostElement: document.body,
+          });
+          await appRunner.runApp();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:sfwf/sfwf.dart';
+import '../widgets/layout.dart';
 
 class NotFoundPage extends StatelessWidget {
   const NotFoundPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    SeoController.of(context).updatePage(const SeoData(
+      title: '404 - Page Not Found | SFWF Showcase',
+      description: 'The page you are looking for does not exist or has been moved.',
+      noIndex: true,
+    ));
+
     final theme = Theme.of(context);
-    return Scaffold(
-      body: Center(
+    return AppLayout(
+      child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(

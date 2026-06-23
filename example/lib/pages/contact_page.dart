@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:sfwf/sfwf.dart';
 import '../widgets/layout.dart';
 
@@ -15,6 +18,7 @@ class _ContactPageState extends State<ContactPage> {
   final _emailCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
   bool _sending = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -23,6 +27,8 @@ class _ContactPageState extends State<ContactPage> {
     _messageCtrl.dispose();
     super.dispose();
   }
+
+  static final _emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +82,7 @@ class _ContactPageState extends State<ContactPage> {
                             border: OutlineInputBorder(),
                           ),
                           validator: (v) =>
-                              v?.isEmpty == true ? 'Enter your name' : null,
+                              v?.trim().isEmpty == true ? 'Enter your name' : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -87,9 +93,9 @@ class _ContactPageState extends State<ContactPage> {
                             border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.emailAddress,
-                          validator: (v) => v?.contains('@') == true
-                              ? null
-                              : 'Enter valid email',
+                          validator: (v) => v == null || !_emailRegex.hasMatch(v.trim())
+                              ? 'Enter a valid email address'
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -101,8 +107,13 @@ class _ContactPageState extends State<ContactPage> {
                           ),
                           maxLines: 5,
                           validator: (v) =>
-                              v?.isEmpty == true ? 'Enter your message' : null,
+                              v?.trim().isEmpty == true ? 'Enter your message' : null,
                         ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 12),
+                          Text(_errorMessage!,
+                              style: TextStyle(color: theme.colorScheme.error)),
+                        ],
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -127,37 +138,23 @@ class _ContactPageState extends State<ContactPage> {
                 ],
               ),
             ),
-            if (isDesktop) ...[
-              const SizedBox(width: 80),
-              const Expanded(
-                flex: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _ContactInfo(
-                      Icons.email,
-                      'Email',
-                      'dev.bahy1@gmail.com',
-                      'We reply within 24 hours',
-                    ),
-                    SizedBox(height: 32),
-                    _ContactInfo(
-                      Icons.location_on,
-                      'Location',
-                      'Cairo, Egypt',
-                      'Remote-first team',
-                    ),
-                    SizedBox(height: 32),
-                    _ContactInfo(
-                      Icons.access_time,
-                      'Hours',
-                      'Mon - Fri, 9AM - 6PM',
-                      'Weekends by appointment',
-                    ),
-                  ],
-                ),
+            const SizedBox(width: 80),
+            const Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _ContactInfo(
+                    Icons.email, 'Email', 'dev.bahy1@gmail.com', 'We reply within 24 hours'),
+                  SizedBox(height: 32),
+                  _ContactInfo(
+                    Icons.location_on, 'Location', 'Cairo, Egypt', 'Remote-first team'),
+                  SizedBox(height: 32),
+                  _ContactInfo(
+                    Icons.access_time, 'Hours', 'Mon - Fri, 9AM - 6PM', 'Weekends by appointment'),
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -166,20 +163,57 @@ class _ContactPageState extends State<ContactPage> {
 
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _sending = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() => _sending = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Message sent! We will get back to you soon.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      _nameCtrl.clear();
-      _emailCtrl.clear();
-      _messageCtrl.clear();
+    setState(() {
+      _sending = true;
+      _errorMessage = null;
     });
+
+    final body = {
+      'name': _nameCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'message': _messageCtrl.text.trim(),
+    };
+
+    _sendMessage(body);
+  }
+
+  Future<void> _sendMessage(Map<String, String> body) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.web3forms.com/submit'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          ...body,
+          'access_key': 'YOUR_ACCESS_KEY_HERE',
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        setState(() => _sending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Message sent! We will get back to you soon.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _nameCtrl.clear();
+        _emailCtrl.clear();
+        _messageCtrl.clear();
+      } else {
+        setState(() {
+          _sending = false;
+          _errorMessage = 'Failed to send message. Please try again later.';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _sending = false;
+        _errorMessage = 'Network error. Please check your connection and try again.';
+      });
+    }
   }
 }
 

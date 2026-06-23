@@ -37,16 +37,17 @@ class ProjectDetailPage extends StatelessWidget {
     ),
   };
 
+  static const _fallback = _ProjectDetail(
+    'Project Details',
+    'Project details coming soon.',
+    'Various',
+    'This project is currently being documented. Check back soon for a full case study.',
+    ['More details coming soon'],
+  );
+
   @override
   Widget build(BuildContext context) {
-    final project = _projects[projectId] ??
-        _ProjectDetail(
-          'Project #$projectId',
-          'Project details coming soon.',
-          'Various',
-          'This project is currently being documented. Check back soon for a full case study.',
-          ['More details coming soon'],
-        );
+    final project = _projects[projectId] ?? _fallback;
 
     SeoController.of(context).updatePage(SeoData(
       title: '${project.title} - SFWF Showcase',

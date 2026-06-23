@@ -111,7 +111,7 @@ class _BlogCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {},
+        onTap: () => Navigator.pushNamed(context, '/blog/${post.title.hashCode}'),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
