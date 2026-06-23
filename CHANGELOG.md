@@ -1,4 +1,4 @@
-## 2.0.2
+## 2.0.4
 
 - Fix conditional `dart:io` in image_optimizer.dart (WASM compatibility)
 - Fix conditional `puppeteer` import in ssr_renderer.dart (Android/iOS support)
