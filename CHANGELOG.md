@@ -1,3 +1,10 @@
+## 2.0.6
+
+- Fix WASM compatibility for `cache_manager.dart` (conditional export to break `hive_flutter→path_provider→dart:io` chain with in-memory stub)
+- Zero `dart analyze` issues across main + example packages
+- 28/28 tests pass; web build + WASM dry run succeed
+- Pub score stays at 160/160 (no platform/WASM warnings)
+
 ## 2.0.5
 
 - Fix Web platform compatibility (replace `universal_html` → `package:web` to break `dart:io` chain)

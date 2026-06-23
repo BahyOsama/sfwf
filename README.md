@@ -37,7 +37,7 @@ import 'package:sfwf/sfwf.dart';
 void main() {
   const config = SFWFConfig(
     appName: 'My App',
-    baseUrl: 'https://example.com',
+    baseUrl: 'https://pub.dev/packages/sfwf',
   );
 
   runApp(SFWFApp(
@@ -283,7 +283,7 @@ dart run sfwf build --prerender --optimize-images --generate-sw --analyze
 dart run sfwf serve --port=8080
 
 # Generate sitemap
-dart run sfwf sitemap --base-url=https://example.com
+dart run sfwf sitemap --base-url=https://pub.dev/packages/sfwf
 
 # Analyze built site
 dart run sfwf analyze
