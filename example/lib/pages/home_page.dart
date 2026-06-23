@@ -155,7 +155,7 @@ class _FeaturesSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isDesktop ? 3 : 1,
-                childAspectRatio: isDesktop ? 1.1 : 1.3,
+                childAspectRatio: isDesktop ? 0.5 : 2.0,
                 crossAxisSpacing: 24,
                 mainAxisSpacing: 24,
               ),
@@ -195,13 +195,13 @@ class _FeatureCard extends StatelessWidget {
             Text(data.title,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Expanded(
-              child: Text(data.description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  )),
-            ),
+            Text(data.description,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

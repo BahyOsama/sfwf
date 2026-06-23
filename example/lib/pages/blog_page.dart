@@ -1,57 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sfwf/sfwf.dart';
+import '../providers/providers.dart';
 import '../widgets/layout.dart';
 
-class BlogPage extends StatelessWidget {
+class BlogPage extends ConsumerWidget {
   const BlogPage({super.key});
 
-  static const _posts = [
-    _BlogPost(
-      'Flutter Web in 2026: The Complete Guide',
-      'Discover why Flutter web has become the go-to framework for building production web apps. We cover SEO, performance, and real-world case studies.',
-      'Flutter Web',
-      '5 min read',
-      Icons.web,
-    ),
-    _BlogPost(
-      'Why SEO Matters for Flutter Web Apps',
-      'Learn how to make your Flutter web app search-engine friendly with dynamic meta tags, structured data, and server-side rendering.',
-      'SEO',
-      '4 min read',
-      Icons.search,
-    ),
-    _BlogPost(
-      'Building PWA with Flutter: Complete Tutorial',
-      'Step-by-step guide to adding Progressive Web App support to your Flutter web project. Service workers, manifests, offline support.',
-      'PWA',
-      '7 min read',
-      Icons.phonelink,
-    ),
-    _BlogPost(
-      'Performance Optimization for Flutter Web',
-      'Tips and techniques to optimize your Flutter web app for speed. Lazy loading, image optimization, code splitting, and more.',
-      'Performance',
-      '6 min read',
-      Icons.speed,
-    ),
-    _BlogPost(
-      'Server-Side Rendering with Flutter',
-      'Implement SSR in Flutter web apps using Puppeteer. Improve initial load time and SEO with pre-rendered HTML.',
-      'SSR',
-      '8 min read',
-      Icons.dns,
-    ),
-    _BlogPost(
-      'State Management in Flutter Web',
-      'Compare Riverpod, Bloc, and Provider for Flutter web. Best practices for scalable state management in large web applications.',
-      'State Management',
-      '6 min read',
-      Icons.account_tree,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(blogProvider);
+    final isDesktop = DeviceDetector.isDesktop;
+    final theme = Theme.of(context);
+
     SeoController.of(context).updatePage(const SeoData(
       title: 'Blog - SFWF Showcase',
       description:
@@ -63,7 +24,7 @@ class BlogPage extends StatelessWidget {
     return AppLayout(
       child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
-          horizontal: DeviceDetector.isDesktop ? 80 : 24,
+          horizontal: isDesktop ? 80 : 24,
           vertical: 48,
         ),
         child: Column(
@@ -71,7 +32,7 @@ class BlogPage extends StatelessWidget {
           children: [
             Text('Latest Articles',
                 style: TextStyle(
-                  fontSize: DeviceDetector.isDesktop ? 36 : 28,
+                  fontSize: isDesktop ? 36 : 28,
                   fontWeight: FontWeight.bold,
                 )),
             const SizedBox(height: 8),
@@ -79,11 +40,22 @@ class BlogPage extends StatelessWidget {
               'Tutorials, guides, and insights about Flutter web development',
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 48),
-            ..._posts.map((post) => _BlogCard(post)),
+            const SizedBox(height: 24),
+            _BlogSearchFilterBar(
+              searchQuery: state.searchQuery,
+              categories: state.categories,
+              selectedCategory: state.categoryFilter,
+              onSearchChanged: (q) => ref.read(blogProvider.notifier).setSearchQuery(q),
+              onCategoryChanged: (c) => ref.read(blogProvider.notifier).setCategoryFilter(c),
+            ),
+            const SizedBox(height: 32),
+            if (state.filtered.isEmpty)
+              _EmptyBlogState(query: state.searchQuery)
+            else
+              ...state.filtered.map((post) => _BlogCard(post)),
           ],
         ),
       ),
@@ -91,17 +63,76 @@ class BlogPage extends StatelessWidget {
   }
 }
 
-class _BlogPost {
-  final String title;
-  final String description;
-  final String category;
-  final String readTime;
-  final IconData icon;
-  const _BlogPost(this.title, this.description, this.category, this.readTime, this.icon);
+class _BlogSearchFilterBar extends StatelessWidget {
+  final String searchQuery;
+  final List<String> categories;
+  final String? selectedCategory;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<String?> onCategoryChanged;
+
+  const _BlogSearchFilterBar({
+    required this.searchQuery,
+    required this.categories,
+    this.selectedCategory,
+    required this.onSearchChanged,
+    required this.onCategoryChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = DeviceDetector.isDesktop;
+    return Column(
+      children: [
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search articles...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          onChanged: onSearchChanged,
+        ),
+        if (isDesktop) ...[
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _BlogFilterChip('All', null, selectedCategory, onCategoryChanged),
+                ...categories.map((c) => Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _BlogFilterChip(c, c, selectedCategory, onCategoryChanged),
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _BlogFilterChip extends StatelessWidget {
+  final String label;
+  final String? value;
+  final String? selectedCategory;
+  final ValueChanged<String?> onChanged;
+
+  const _BlogFilterChip(this.label, this.value, this.selectedCategory, this.onChanged);
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedCategory == value;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onChanged(isSelected ? null : value),
+    );
+  }
 }
 
 class _BlogCard extends StatelessWidget {
-  final _BlogPost post;
+  final BlogPost post;
   const _BlogCard(this.post);
 
   @override
@@ -111,7 +142,7 @@ class _BlogCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.pushNamed(context, '/blog/${post.title.hashCode}'),
+        onTap: () => Navigator.pushNamed(context, '/blog/${post.slug}'),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
@@ -163,6 +194,32 @@ class _BlogCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyBlogState extends StatelessWidget {
+  final String query;
+  const _EmptyBlogState({required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 64),
+        child: Column(
+          children: [
+            Icon(Icons.article, size: 80, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text('No articles found',
+                style: TextStyle(fontSize: 20, color: theme.colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 8),
+            Text('No results for "$query"',
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+          ],
         ),
       ),
     );

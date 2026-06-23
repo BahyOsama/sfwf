@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sfwf/sfwf.dart';
+import '../providers/providers.dart';
 
-class AppLayout extends StatelessWidget {
+class AppLayout extends ConsumerWidget {
   final Widget child;
 
   const AppLayout({
@@ -10,45 +12,81 @@ class AppLayout extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = DeviceDetector.isDesktop;
     final theme = Theme.of(context);
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
+    final currentIdx = _currentIndexFor(context);
 
     return Scaffold(
       body: Row(
         children: [
           if (isDesktop)
-            NavigationRail(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (i) => _navigateTo(context, i),
-              labelType: NavigationRailLabelType.all,
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Icon(Icons.flutter_dash,
-                    size: 40, color: theme.colorScheme.primary),
+            Theme(
+              data: theme.copyWith(
+                navigationRailTheme: NavigationRailThemeData(
+                  selectedIconTheme: IconThemeData(
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  unselectedIconTheme: IconThemeData(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    size: 24,
+                  ),
+                ),
               ),
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: Text('Home'),
+              child: NavigationRail(
+                selectedIndex: currentIdx,
+                onDestinationSelected: (i) => _navigateTo(context, i),
+                labelType: NavigationRailLabelType.all,
+                leading: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Icon(Icons.flutter_dash,
+                      size: 40, color: theme.colorScheme.primary),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.folder_outlined),
-                  selectedIcon: Icon(Icons.folder),
-                  label: Text('Projects'),
+                trailing: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: IconButton(
+                    icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                    onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+                    tooltip: 'Toggle theme',
+                  ),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.article_outlined),
-                  selectedIcon: Icon(Icons.article),
-                  label: Text('Blog'),
+                selectedLabelTextStyle: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: theme.colorScheme.primary,
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.mail_outlined),
-                  selectedIcon: Icon(Icons.mail),
-                  label: Text('Contact'),
+                unselectedLabelTextStyle: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ],
+                indicatorColor: theme.colorScheme.primaryContainer,
+                minWidth: 100,
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home),
+                    label: Text('Home'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.folder_outlined),
+                    selectedIcon: Icon(Icons.folder),
+                    label: Text('Projects'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.article_outlined),
+                    selectedIcon: Icon(Icons.article),
+                    label: Text('Blog'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.mail_outlined),
+                    selectedIcon: Icon(Icons.mail),
+                    label: Text('Contact'),
+                  ),
+                ],
+              ),
             ),
           Expanded(
             child: Scaffold(
@@ -56,7 +94,7 @@ class AppLayout extends StatelessWidget {
                   ? null
                   : AppBar(
                       title: Text(
-                        _titleForIndex(_currentIndex),
+                        _titleForIndex(currentIdx),
                       ),
                       leading: Builder(
                         builder: (ctx) => IconButton(
@@ -64,6 +102,13 @@ class AppLayout extends StatelessWidget {
                           onPressed: () => Scaffold.of(ctx).openDrawer(),
                         ),
                       ),
+                      actions: [
+                        IconButton(
+                          icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                          onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+                          tooltip: 'Toggle theme',
+                        ),
+                      ],
                     ),
               drawer: isDesktop
                   ? null
@@ -90,13 +135,13 @@ class AppLayout extends StatelessWidget {
                             ),
                           ),
                           _drawerItem(
-                              Icons.home, 'Home', '/', context, _currentIndex),
+                              Icons.home, 'Home', '/', context, currentIdx),
                           _drawerItem(Icons.folder, 'Projects', '/projects',
-                              context, _currentIndex),
+                              context, currentIdx),
                           _drawerItem(Icons.article, 'Blog', '/blog', context,
-                              _currentIndex),
+                              currentIdx),
                           _drawerItem(Icons.mail, 'Contact', '/contact',
-                              context, _currentIndex),
+                              context, currentIdx),
                         ],
                       ),
                     ),
@@ -108,17 +153,12 @@ class AppLayout extends StatelessWidget {
     );
   }
 
-  int get _currentIndex {
-    final path = _currentPath;
-    if (path.startsWith('/projects')) return 1;
-    if (path.startsWith('/blog')) return 2;
-    if (path.startsWith('/contact')) return 3;
+  int _currentIndexFor(BuildContext context) {
+    final routeName = ModalRoute.of(context)?.settings.name ?? '/';
+    if (routeName.startsWith('/projects')) return 1;
+    if (routeName.startsWith('/blog')) return 2;
+    if (routeName.startsWith('/contact')) return 3;
     return 0;
-  }
-
-  String get _currentPath {
-    final uri = Uri.base;
-    return uri.path;
   }
 
   String _titleForIndex(int index) {
@@ -145,10 +185,17 @@ class AppLayout extends StatelessWidget {
 Widget _drawerItem(
     IconData icon, String label, String route, BuildContext context, int currentIndex) {
   final isSelected = currentIndex == _indexForRoute(route);
+  final theme = Theme.of(context);
   return ListTile(
-    leading: Icon(icon),
-    title: Text(label),
+    leading: Icon(icon, color: isSelected ? theme.colorScheme.primary : null),
+    title: Text(label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+          color: isSelected ? theme.colorScheme.primary : null,
+        )),
     selected: isSelected,
+    selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     onTap: () {
       Navigator.pop(context);
       Navigator.pushNamed(context, route);

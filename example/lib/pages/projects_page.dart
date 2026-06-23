@@ -1,57 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sfwf/sfwf.dart';
+import '../providers/providers.dart';
 import '../widgets/layout.dart';
 
-class ProjectsPage extends StatelessWidget {
+class ProjectsPage extends ConsumerWidget {
   const ProjectsPage({super.key});
 
-  static const _projects = [
-    _ProjectData(
-      'E-Commerce Platform',
-      'A full-featured online store built with Flutter web. Features include product catalog, cart, checkout, and admin dashboard.',
-      'Flutter, Stripe, Firebase',
-      Icons.shopping_cart,
-      '/projects/1',
-    ),
-    _ProjectData(
-      'Real-Time Dashboard',
-      'Real-time analytics dashboard with live charts, data tables, and export capabilities. Handles millions of data points.',
-      'Flutter, WebSockets, Charts',
-      Icons.dashboard,
-      '/projects/2',
-    ),
-    _ProjectData(
-      'Social Media App',
-      'A social media platform with posts, stories, messaging, and notifications. Fully responsive web app.',
-      'Flutter, GraphQL, Firebase',
-      Icons.people,
-      '/projects/3',
-    ),
-    _ProjectData(
-      'AI Content Generator',
-      'Leverage AI to generate blog posts, social media content, and marketing copy. Built-in SEO optimization.',
-      'Flutter, OpenAI, Riverpod',
-      Icons.auto_awesome,
-      '/projects/4',
-    ),
-    _ProjectData(
-      'Portfolio CMS',
-      'A headless CMS for developers to manage their portfolio. Drag-and-drop builder with live preview.',
-      'Flutter, Supabase, Riverpod',
-      Icons.web,
-      '/projects/5',
-    ),
-    _ProjectData(
-      'Task Management Tool',
-      'Kanban-style project management tool with real-time collaboration, file sharing, and team management.',
-      'Flutter, WebRTC, Hive',
-      Icons.checklist,
-      '/projects/6',
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(projectsProvider);
+    final isDesktop = DeviceDetector.isDesktop;
+    final theme = Theme.of(context);
+
     SeoController.of(context).updatePage(const SeoData(
       title: 'Projects - SFWF Showcase',
       description:
@@ -63,7 +24,7 @@ class ProjectsPage extends StatelessWidget {
     return AppLayout(
       child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
-          horizontal: DeviceDetector.isDesktop ? 80 : 24,
+          horizontal: isDesktop ? 80 : 24,
           vertical: 48,
         ),
         child: Column(
@@ -71,7 +32,7 @@ class ProjectsPage extends StatelessWidget {
           children: [
             Text('Our Projects',
                 style: TextStyle(
-                  fontSize: DeviceDetector.isDesktop ? 36 : 28,
+                  fontSize: isDesktop ? 36 : 28,
                   fontWeight: FontWeight.bold,
                 )),
             const SizedBox(height: 8),
@@ -79,22 +40,33 @@ class ProjectsPage extends StatelessWidget {
               'Real-world Flutter web applications built with SFWF',
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 48),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: DeviceDetector.isDesktop ? 3 : 1,
-                childAspectRatio: DeviceDetector.isDesktop ? 1.0 : 1.2,
-                crossAxisSpacing: 24,
-                mainAxisSpacing: 24,
-              ),
-              itemCount: _projects.length,
-              itemBuilder: (ctx, i) => _ProjectCard(_projects[i]),
+            const SizedBox(height: 24),
+            _SearchFilterBar(
+              searchQuery: state.searchQuery,
+              categories: state.categories,
+              selectedCategory: state.categoryFilter,
+              onSearchChanged: (q) => ref.read(projectsProvider.notifier).setSearchQuery(q),
+              onCategoryChanged: (c) => ref.read(projectsProvider.notifier).setCategoryFilter(c),
             ),
+            const SizedBox(height: 32),
+            if (state.filtered.isEmpty)
+              _EmptyState(query: state.searchQuery)
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isDesktop ? 3 : 1,
+                  childAspectRatio: isDesktop ? 1.0 : 1.2,
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 24,
+                ),
+                itemCount: state.filtered.length,
+                itemBuilder: (ctx, i) => _ProjectCard(state.filtered[i]),
+              ),
           ],
         ),
       ),
@@ -102,18 +74,77 @@ class ProjectsPage extends StatelessWidget {
   }
 }
 
-class _ProjectData {
-  final String title;
-  final String description;
-  final String tech;
-  final IconData icon;
-  final String route;
-  const _ProjectData(this.title, this.description, this.tech, this.icon, this.route);
+class _SearchFilterBar extends StatelessWidget {
+  final String searchQuery;
+  final List<String> categories;
+  final String? selectedCategory;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<String?> onCategoryChanged;
+
+  const _SearchFilterBar({
+    required this.searchQuery,
+    required this.categories,
+    this.selectedCategory,
+    required this.onSearchChanged,
+    required this.onCategoryChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = DeviceDetector.isDesktop;
+    return Column(
+      children: [
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search projects...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          onChanged: onSearchChanged,
+        ),
+        if (isDesktop) ...[
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterChip('All', null, selectedCategory, onCategoryChanged),
+                ...categories.map((c) => Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _FilterChip(c, c, selectedCategory, onCategoryChanged),
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final String? value;
+  final String? selectedCategory;
+  final ValueChanged<String?> onChanged;
+
+  const _FilterChip(this.label, this.value, this.selectedCategory, this.onChanged);
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedCategory == value;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onChanged(isSelected ? null : value),
+    );
+  }
 }
 
 class _ProjectCard extends StatelessWidget {
-  final _ProjectData data;
-  const _ProjectCard(this.data);
+  final Project project;
+  const _ProjectCard(this.project);
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +152,7 @@ class _ProjectCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => Navigator.pushNamed(context, data.route),
+        onTap: () => Navigator.pushNamed(context, '/projects/${project.id}'),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -129,21 +160,21 @@ class _ProjectCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(data.icon, size: 32, color: theme.colorScheme.primary),
+                  Icon(project.icon, size: 32, color: theme.colorScheme.primary),
                   const Spacer(),
                   Icon(Icons.arrow_forward,
                       size: 20, color: theme.colorScheme.onSurfaceVariant),
                 ],
               ),
               const SizedBox(height: 16),
-              Text(data.title,
+              Text(project.title,
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 8),
               Expanded(
-                child: Text(data.description,
+                child: Text(project.shortDesc,
                     style: TextStyle(
                       fontSize: 14,
                       color: theme.colorScheme.onSurfaceVariant,
@@ -153,11 +184,37 @@ class _ProjectCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Chip(
-                label: Text(data.tech, style: const TextStyle(fontSize: 11)),
+                label: Text(project.category, style: const TextStyle(fontSize: 11)),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final String query;
+  const _EmptyState({required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 64),
+        child: Column(
+          children: [
+            Icon(Icons.search_off, size: 80, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text('No projects found',
+                style: TextStyle(fontSize: 20, color: theme.colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 8),
+            Text('No results for "$query"',
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+          ],
         ),
       ),
     );
