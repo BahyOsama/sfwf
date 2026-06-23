@@ -1,3 +1,13 @@
+## 2.0.5
+
+- Fix Web platform compatibility (replace `universal_html` → `package:web` to break `dart:io` chain)
+- Fix WASM compatibility (conditional export for `offline_provider.dart` to break `hive→path_provider→dart:io` chain)
+- Remove `universal_html` dependency (unused; saves ~4 transitive deps)
+- Add `web` dependency for platform-compatible DOM operations
+- Zero `dart analyze` issues across main + example packages
+- 28/28 tests pass; web build + WASM dry run succeed
+- Pub score now 160/160 (no platform/WASM warnings)
+
 ## 2.0.4
 
 - Fix conditional `dart:io` in image_optimizer.dart (WASM compatibility)

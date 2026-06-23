@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sfwf/core/config.dart';
 import 'package:sfwf/seo/seo_data.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:web/web.dart' as web;
 
 class DomOperations {
   void applyToDom(SeoData data, SFWFConfig config) {
@@ -14,7 +14,7 @@ class DomOperations {
           ? '${data.title}${config.seoDefaults.titleSuffix}'
           : config.appName;
 
-      html.document.title = title;
+      web.document.title = title;
 
       _setMeta('description',
           data.description ?? config.seoDefaults.defaultDescription);
@@ -24,7 +24,7 @@ class DomOperations {
           data.description ?? config.seoDefaults.defaultDescription);
       _setMeta('og:image', data.image ?? config.seoDefaults.defaultImage);
       _setMeta('og:url',
-          config.baseUrl + (html.window.location.pathname ?? ''));
+          config.baseUrl + web.window.location.pathname);
       _setMeta('og:type', data.ogType ?? 'website');
       _setMeta('og:site_name', config.appName);
       _setMeta('og:locale',
@@ -62,13 +62,12 @@ class DomOperations {
 
   void _setMeta(String name, String content) {
     try {
-      var meta = html.document.querySelector(
-          'meta[name="$name"]') as html.MetaElement?;
+      var meta =
+          web.document.querySelector('meta[name="$name"]');
       if (meta == null) {
-        meta =
-            html.document.createElement('meta') as html.MetaElement;
+        meta = web.document.createElement('meta');
         meta.setAttribute('name', name);
-        html.document.head!.append(meta);
+        web.document.head!.appendChild(meta);
       }
       meta.setAttribute('content', content);
     } catch (_) {}
@@ -76,13 +75,12 @@ class DomOperations {
 
   void _setLink(String rel, String href) {
     try {
-      var link = html.document.querySelector(
-          'link[rel="$rel"]') as html.LinkElement?;
+      var link =
+          web.document.querySelector('link[rel="$rel"]');
       if (link == null) {
-        link =
-            html.document.createElement('link') as html.LinkElement;
+        link = web.document.createElement('link');
         link.setAttribute('rel', rel);
-        html.document.head!.append(link);
+        web.document.head!.appendChild(link);
       }
       link.setAttribute('href', href);
     } catch (_) {}
@@ -90,13 +88,14 @@ class DomOperations {
 
   void _injectJsonLd(Map<String, dynamic> json) {
     try {
-      final script = html.document.querySelector(
-              '#sfwf-json-ld') as html.ScriptElement? ??
-          html.document.createElement('script') as html.ScriptElement;
-      script.id = 'sfwf-json-ld';
-      script.setAttribute('type', 'application/ld+json');
-      script.text = jsonEncode(json);
-      if (script.parent == null) html.document.head!.append(script);
+      var script = web.document.getElementById('sfwf-json-ld');
+      if (script == null) {
+        script = web.document.createElement('script');
+        script.id = 'sfwf-json-ld';
+        script.setAttribute('type', 'application/ld+json');
+        web.document.head!.appendChild(script);
+      }
+      script.textContent = jsonEncode(json);
     } catch (_) {}
   }
 }

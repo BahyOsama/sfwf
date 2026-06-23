@@ -3,7 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:sfwf/seo/seo_controller.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:web/web.dart' as web;
 
 class SsrHydrator {
   final SeoController seoController;
@@ -14,18 +14,18 @@ class SsrHydrator {
     if (!kIsWeb) return;
 
     try {
-      final stateScript = html.document.getElementById('__SFWF_STATE__');
+      final stateScript = web.document.getElementById('__SFWF_STATE__');
       if (stateScript != null) {
-        final jsonString = stateScript.text;
+        final jsonString = stateScript.textContent;
         if (jsonString != null && jsonString.isNotEmpty) {
           final state = jsonDecode(jsonString);
           log('Hydrating with state: $state');
         }
       }
 
-      final title = html.document.title;
+      final title = web.document.title;
       final metaDesc = _getMetaContent('description');
-      final safeTitle = (title as String?) ?? '';
+      final safeTitle = title as String? ?? '';
       if (safeTitle.isNotEmpty || (metaDesc?.isNotEmpty == true)) {
         seoController.updatePage(
             SeoData(title: safeTitle, description: metaDesc));
@@ -37,7 +37,7 @@ class SsrHydrator {
 
   String? _getMetaContent(String name) {
     try {
-      final meta = html.document.querySelector('meta[name="$name"]');
+      final meta = web.document.querySelector('meta[name="$name"]');
       return meta?.getAttribute('content');
     } catch (_) {
       return null;

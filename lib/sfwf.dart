@@ -14,7 +14,8 @@ export 'ssr/ssr_client.dart';
 export 'ai/ai_analyzer.dart';
 export 'ai/ai_suggestions.dart';
 export 'data/cache_manager.dart';
-export 'data/offline_provider.dart';
+export 'data/offline_provider_stub.dart'
+    if (dart.library.io) 'data/offline_provider.dart';
 export 'data/state_bridge.dart';
 export 'device/device_detector.dart';
 export 'device/adaptive_builder.dart';

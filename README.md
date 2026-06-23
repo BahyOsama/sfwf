@@ -1,4 +1,4 @@
-# Smart Flutter Web Framework (SFWF) v2.0
+# Smart Flutter Web Framework (SFWF) v2.5
 
 **SFWF** is a production-ready framework that solves **10 major Flutter web problems** — SEO, Server-Side Rendering, PWA, routing, performance, and more. It's the ultimate platform for building production-grade web apps with Flutter.
 
@@ -17,7 +17,7 @@
 | 7 | **No responsive** | Desktop-only layout | DeviceDetector + AdaptiveBuilder |
 | 8 | **No meta per page** | Same title everywhere | SeoController per page |
 | 9 | **No offline** | No data without internet | CacheManager + OfflineProvider |
-| 10 | **Plugin conflicts** | `dart:html` fails on mobile | universal_html + PluginFallback |
+| 10 | **Plugin conflicts** | `dart:html` fails on mobile | PluginFallback |
 
 ---
 
@@ -25,7 +25,7 @@
 
 ```yaml
 dependencies:
-  sfwf: ^2.0.0
+  sfwf: ^2.0.5
 ```
 
 ## 🚀 Quick Start
@@ -218,33 +218,54 @@ lib/
 │   ├── middleware.dart    # RouteGuard & Middleware typedefs
 │   └── guards.dart        # AuthGuard
 ├── seo/
-│   ├── seo_controller.dart # Dynamic meta tags & JSON-LD
-│   ├── seo_provider.dart
-│   ├── sitemap_generator.dart
-│   └── robots_generator.dart
+│   ├── seo_controller.dart       # Dynamic meta tags & JSON-LD
+│   ├── seo_data.dart             # SeoData data class
+│   ├── seo_provider.dart         # InheritedWidget provider
+│   ├── dom_operations.dart       # DOM ops (conditional stub/web)
+│   ├── dom_operations_stub.dart  # No-op stub for non-web
+│   ├── dom_operations_web.dart   # Web DOM ops via package:web
+│   ├── sitemap.dart              # Sitemap (conditional stub/io)
+│   ├── sitemap_generator.dart    # Real sitemap generator
+│   ├── sitemap_stub.dart         # Sitemap stub for non-io
+│   ├── robots.dart               # Robots.txt (conditional stub/io)
+│   ├── robots_generator.dart     # Real robots.txt generator
+│   └── robots_stub.dart          # Robots.txt stub for non-io
 ├── ssr/
-│   ├── ssr_renderer.dart  # Puppeteer SSR
-│   └── ssr_client.dart    # Client-side hydration
+│   ├── ssr_renderer.dart         # SSR renderer (always base)
+│   ├── ssr_renderer_base.dart    # Abstract SSR renderer
+│   ├── ssr_renderer_puppeteer.dart # Puppeteer SSR impl
+│   ├── ssr_renderer_stub.dart    # SSR stub for non-io
+│   ├── ssr_client.dart           # Client-side hydration
+│   ├── ssr_hydrator.dart         # Hydrator (conditional stub/web)
+│   ├── ssr_hydrator_stub.dart    # No-op hydrator stub
+│   └── ssr_hydrator_web.dart     # Web hydrator via package:web
 ├── ai/
-│   ├── ai_analyzer.dart   # OpenAI SEO analysis
+│   ├── ai_analyzer.dart          # OpenAI SEO analysis
 │   └── ai_suggestions.dart
 ├── data/
-│   ├── cache_manager.dart # TTL-based caching
-│   ├── offline_provider.dart
-│   └── state_bridge.dart  # Simple state management
+│   ├── cache_manager.dart        # TTL-based caching (Hive)
+│   ├── offline_provider.dart     # Real offline-first fetch
+│   ├── offline_provider_stub.dart# Offline stub for WASM
+│   └── state_bridge.dart         # Simple state management
 ├── device/
-│   ├── device_detector.dart # Mobile/Tablet/Desktop detection
+│   ├── device_detector.dart      # Platform detection
 │   └── adaptive_builder.dart
 ├── performance/
 │   ├── lazy_loader.dart
-│   ├── image_optimizer.dart # WebP + resize + compress
-│   └── service_worker.dart  # PWA Service Worker
+│   ├── image_optimizer.dart      # Image opt (conditional stub/io)
+│   ├── image_optimizer_io.dart   # Real image optimizer
+│   ├── image_optimizer_stub.dart # Image opt stub for non-io
+│   ├── service_worker.dart       # SW (conditional stub/io)
+│   ├── service_worker_io.dart    # Real service worker gen
+│   └── service_worker_stub.dart  # SW stub for non-io
 ├── plugins/
-│   └── compatibility_layer.dart
+│   └── compatibility_layer.dart  # PluginFallback
 ├── prerender/
-│   └── prerender_cli.dart
-├── sfwf.dart               # Main export barrel
-└── sfwf_web.dart           # Web plugin registration
+│   ├── prerender.dart            # Pre-render (conditional stub/io)
+│   ├── prerender_cli.dart        # Real pre-render CLI
+│   └── prerender_stub.dart       # Pre-render stub for non-io
+├── sfwf.dart                     # Main export barrel
+└── sfwf_web.dart                 # Web plugin registration
 ```
 
 ---
@@ -275,11 +296,11 @@ dart run sfwf analyze
 ```dart
 SFWFConfig(
   appName: 'My App',
-  baseUrl: 'https://example.com',
+  baseUrl: 'https://pub.dev/packages/sfwf',
   seoDefaults: SeoDefaults(
     titleSuffix: ' | My App',
     defaultDescription: 'My app description',
-    defaultImage: 'https://example.com/og.png',
+    defaultImage: 'https://github.com/BahyOsama/sfwf/blob/main/default-og.png',
     twitterHandle: '@myapp',
   ),
   ssrMode: SsrMode.hybrid,       // off | ssrOnly | hybrid | prerenderOnly
@@ -289,6 +310,20 @@ SFWFConfig(
   supportedLocales: [Locale('en')],
 )
 ```
+
+---
+
+## 👨‍💻 Author
+
+**Bahy Osama** – Full-stack Flutter developer and creator of SFWF.
+
+| | Link |
+|---|------|
+| 🌐 Website | [https://appsyntro.netlify.app/](https://appsyntro.netlify.app/) |
+| 📧 Email | [dev.bahy1@gmail.com](mailto:dev.bahy1@gmail.com) |
+| 💼 LinkedIn | [https://www.linkedin.com/in/bahy-osama](https://www.linkedin.com/in/bahy-osama) |
+| 🐙 GitHub | [https://github.com/BahyOsama](https://github.com/BahyOsama) |
+| 🎨 Portfolio | [https://www.canva.com/design/DAFwCHH89oY/c6VgSlLvJ8Pp4f5AXdaWEQ/view](https://www.canva.com/design/DAFwCHH89oY/c6VgSlLvJ8Pp4f5AXdaWEQ/view?utm_content=DAFwCHH89oY&utm_campaign=designshare&utm_medium=link&utm_source=editor) |
 
 ---
 
