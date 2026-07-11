@@ -1,6 +1,6 @@
 name: sfwf
 description: "Smart Flutter Web Framework v2.0 - SEO, SSR, pre-rendering, AI optimization for Flutter. The ultimate platform for building production-grade web apps with Flutter."
-version: 2.0.6
+version: 2.0.7
 homepage: https://pub.dev/packages/sfwf
 repository: https://github.com/BahyOsama/sfwf
 issue_tracker: https://github.com/BahyOsama/sfwf/issues
@@ -16,21 +16,20 @@ dependencies:
     sdk: flutter
 
   flutter_riverpod: ^3.3.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  http: ^1.6.0
-  xml: ^7.0.1
+  hive: '>=2.0.0 <3.0.0'
+  hive_flutter: '>=1.0.0 <2.0.0'
+  http: '>=0.13.0 <2.0.0'
+  xml: '>=6.0.0 <8.0.0'
   riverpod: ^3.2.1
   args: ^2.7.0
-  meta: ^1.17.0
-  path: ^1.9.1
+  meta: '>=1.8.0 <3.0.0'
+  path: '>=1.8.0 <2.0.0'
   web: ^1.0.0
-  puppeteer: ^3.22.0
-  shelf: ^1.4.2
-  shelf_router: ^1.1.4
-  image: ^4.1.3
-  crypto: ^3.0.3
-  mime: ^2.0.0
+  puppeteer: '>=3.0.0 <4.0.0'
+  shelf: '>=1.0.0 <2.0.0'
+  shelf_router: '>=1.0.0 <2.0.0'
+  image: '>=3.0.0 <5.0.0'
+  crypto: '>=3.0.0 <4.0.0'
 
 dev_dependencies:
   flutter_test:

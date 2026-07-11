@@ -23,4 +23,5 @@ export 'plugins/compatibility_layer.dart';
 export 'prerender/prerender.dart';
 export 'performance/lazy_loader.dart';
 export 'performance/image_optimizer.dart';
+export 'performance/optimized_image.dart';
 export 'performance/service_worker.dart';

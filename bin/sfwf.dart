@@ -9,6 +9,7 @@ import 'package:sfwf/seo/sitemap_generator.dart';
 import 'package:sfwf/seo/robots_generator.dart';
 import 'package:sfwf/performance/image_optimizer.dart';
 import 'package:sfwf/performance/service_worker.dart';
+import 'package:sfwf/ssr/ssr_server.dart' as server;
 
 Future<void> main(List<String> arguments) async {
   final parser = ArgParser()
@@ -64,6 +65,48 @@ Future<void> main(List<String> arguments) async {
     default:
       _printHelp();
   }
+}
+
+/// Finds the Flutter project root by looking for lib/main.dart.
+/// Falls back to example/lib/main.dart if not found in current dir.
+String? _findProjectRoot() {
+  if (File('lib/main.dart').existsSync()) return '.';
+  if (File('example/lib/main.dart').existsSync()) return 'example';
+  return null;
+}
+
+/// Extracts asset directory paths from pubspec.yaml.
+List<String> _getAssetDirsFromPubspec() {
+  final pubspec = File('pubspec.yaml');
+  if (!pubspec.existsSync()) return [];
+
+  final lines = pubspec.readAsLinesSync();
+  final assets = <String>[];
+  bool inAssets = false;
+
+  for (final line in lines) {
+    final trimmed = line.trimLeft();
+    if (inAssets) {
+      if (!trimmed.startsWith('- ')) {
+        inAssets = false;
+        continue;
+      }
+      final path = trimmed.substring(2).trim();
+      if (path.endsWith('/')) {
+        assets.add(path);
+      } else if (!path.endsWith('.dart')) {
+        assets.add(path.substring(0, path.lastIndexOf('/') + 1));
+      }
+    } else if (trimmed == 'assets:') {
+      inAssets = true;
+    }
+  }
+  return assets.toSet().toList();
+}
+
+/// Ensures consistent forward-slash paths for asset references.
+String _relativeAssetPath(String dir) {
+  return dir.replaceAll('\\', '/');
 }
 
 void _printHelp() {
@@ -214,8 +257,23 @@ Future<void> _build({
   bool optimizeImages = false,
   bool generateSw = false,
 }) async {
+  // Auto-detect project root
+  final projectDir = _findProjectRoot();
+  if (projectDir == null) {
+    stderr.writeln('No Flutter project found. Run this command from a Flutter project directory.');
+    stderr.writeln('  - Create a new project: sfwf create my_app && cd my_app');
+    stderr.writeln('  - Or use the example app: cd example && dart run ../bin/sfwf.dart build');
+    exit(1);
+  }
+  if (projectDir != '.') {
+    stderr.writeln('No lib/main.dart found in current directory.');
+    stderr.writeln('Changing to "$projectDir/" directory...');
+    Directory.current = projectDir;
+  }
+
   stdout.writeln('Building Flutter web app...');
-  final result = await Process.run('flutter', ['build', 'web', '--release']);
+  final result = await Process.run('flutter', ['build', 'web', '--release'],
+      runInShell: true);
   if (result.exitCode != 0) {
     stderr.writeln('Build failed: ${result.stderr}');
     exit(1);
@@ -224,7 +282,25 @@ Future<void> _build({
 
   if (optimizeImages) {
     stdout.writeln('Optimizing images...');
-    await ImageOptimizer.optimizeAll('assets/images', 'build/web/assets/images');
+    final assetDirs = _getAssetDirsFromPubspec();
+    if (assetDirs.isEmpty) {
+      stderr.writeln('No asset directories declared in pubspec.yaml.');
+      stderr.writeln('Add assets to your pubspec.yaml under flutter:');
+      stderr.writeln('  flutter:');
+      stderr.writeln('    assets:');
+      stderr.writeln('      - assets/images/');
+    } else {
+      for (final dir in assetDirs) {
+        final source = Directory(dir);
+        if (await source.exists()) {
+          final outDir = 'build/web/assets/${_relativeAssetPath(dir)}';
+          stdout.writeln('  Optimizing $dir -> $outDir');
+          await ImageOptimizer.optimizeAll(dir, outDir);
+        } else {
+          stdout.writeln('  Skipping $dir (not found)');
+        }
+      }
+    }
   }
   if (prerender) {
     stdout.writeln('Pre-rendering routes...');
@@ -242,8 +318,25 @@ Future<void> _build({
 
 Future<void> _serve({int port = 3000}) async {
   stdout.writeln('Starting SFWF SSR server on port $port...');
-  await Process.start('node', ['server/node_server.js', '--port=$port'],
-      runInShell: true);
+
+  // Auto-detect build directory
+  var buildDir = Directory('build/web');
+  var buildDirPath = buildDir.absolute.path;
+  if (!await buildDir.exists()) {
+    final exampleDir = Directory('example/build/web');
+    final exampleDirPath = exampleDir.absolute.path;
+    if (await exampleDir.exists()) {
+      stderr.writeln('No build/web found in current directory.');
+      stderr.writeln('Using "$exampleDirPath"...');
+      Directory.current = 'example';
+      buildDirPath = exampleDirPath;
+    } else {
+      stderr.writeln('Build directory not found. Run `sfwf build` first.');
+      exit(1);
+    }
+  }
+
+  await server.startSsrServer(buildDirPath: buildDirPath, port: port);
 }
 
 Future<void> _analyze() async {

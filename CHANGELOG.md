@@ -1,3 +1,12 @@
+## 2.0.7
+
+- Fix `ProcessException` in CLI build command: add `runInShell: true` for Windows PATH resolution
+- Fix CLI build/serve: auto-detect project root (`lib/main.dart` or `example/lib/main.dart`)
+- Fix image optimizer: scan `pubspec.yaml` for declared asset paths instead of hardcoded directories
+- Add `OptimizedImage` widget supporting `asset`, `network`, `file`, and `memory` image sources with max-dimension constraints
+- Export `OptimizedImage` from public API
+- Zero `flutter analyze` issues; 27/27 tests pass
+
 ## 2.0.6
 
 - Fix WASM compatibility for `cache_manager.dart` (conditional export to break `hive_flutter→path_provider→dart:io` chain with in-memory stub)
