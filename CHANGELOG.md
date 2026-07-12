@@ -1,3 +1,10 @@
+## 2.0.8
+
+- Add screenshots gallery with 11 real screenshots (home, projects, blog, contact, DarkMode, SEO, PWA, SSR, responsive, images, example-app)
+- Add demo videos (full app demo + SEO configuration)
+- Fix README media references to match actual files only
+- Zero `flutter analyze` issues; 27/27 tests pass
+
 ## 2.0.7
 
 - Fix `ProcessException` in CLI build command: add `runInShell: true` for Windows PATH resolution

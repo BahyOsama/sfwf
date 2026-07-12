@@ -22,7 +22,10 @@
 
 ## Demo Video
 
-[![SFWF Demo](media/demo-thumbnail.png)](media/demo.mp4)
+| Video | Link |
+|-------|------|
+| **Full App Demo** | [![SFWF Demo](media/demo-thumbnail.png)](media/demo.mp4) |
+| **SEO Configuration** | [![SEO](media/seo-thumb.png)](media/seo.mp4) |
 
 ---
 
@@ -49,7 +52,7 @@
 
 ```yaml
 dependencies:
-  sfwf: ^2.0.6
+  sfwf: ^2.0.8
 ```
 
 ```bash
@@ -1447,6 +1450,12 @@ Use SFWF 2.0.6+ — all `dart:io` dependencies use conditional exports.
 | Blog | ![Blog](screenshots/blog.png) |
 | Contact | ![Contact](screenshots/contact.png) |
 | Dark Mode | ![Dark](screenshots/DarkMode.png) |
+| SEO Meta Tags | ![SEO](screenshots/seo.png) |
+| PWA Install Prompt | ![PWA](screenshots/pwa.png) |
+| SSR Pre-rendered | ![SSR](screenshots/ssr.png) |
+| Responsive Layout | ![Responsive](screenshots/responsive.png) |
+| Image Optimization | ![Images](screenshots/images.png) |
+| Example App | ![Example](screenshots/example-app.png) |
 
 ---
 
@@ -1454,12 +1463,8 @@ Use SFWF 2.0.6+ — all `dart:io` dependencies use conditional exports.
 
 | Topic | Video |
 |-------|-------|
-| Quick Start & Installation | [![Quick Start](media/quick-start-thumb.png)](media/quick-start.mp4) |
+| Full App Demo | [![Demo](media/demo-thumbnail.png)](media/demo.mp4) |
 | SEO Configuration | [![SEO](media/seo-thumb.png)](media/seo.mp4) |
-| Routing & Navigation | [![Router](media/router-thumb.png)](media/router.mp4) |
-| SSR & Pre-rendering | [![SSR](media/ssr-thumb.png)](media/ssr.mp4) |
-| PWA & Service Worker | [![PWA](media/pwa-thumb.png)](media/pwa.mp4) |
-| CLI Commands | [![CLI](media/cli-thumb.png)](media/cli.mp4) |
 
 ---
 

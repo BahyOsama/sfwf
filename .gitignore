@@ -9,7 +9,7 @@
 .history
 .svn/
 migrate_working_dir/
-
+media/*.mp4
 # IntelliJ related
 *.iml
 *.ipr
@@ -30,3 +30,6 @@ migrate_working_dir/
 /build/
 example/build/
 /coverage/
+
+# Puppeteer local chrome
+.local-chrome/
