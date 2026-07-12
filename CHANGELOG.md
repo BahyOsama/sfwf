@@ -1,3 +1,9 @@
+## 2.0.9
+
+- Fix pub.dev score: tighten `hive` to `>=2.2.3 <3.0.0` and `hive_flutter` to `>=1.1.0 <2.0.0` to pass downgrade analysis on Dart 3.x
+- Regain 20 points in "Compatible with dependency constraint lower bounds" (score back to 160/160)
+- Zero `flutter analyze` issues; 27/27 tests pass
+
 ## 2.0.8
 
 - Add screenshots gallery with 11 real screenshots (home, projects, blog, contact, DarkMode, SEO, PWA, SSR, responsive, images, example-app)

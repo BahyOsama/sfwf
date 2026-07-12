@@ -24,8 +24,8 @@
 
 | Video | Link |
 |-------|------|
-| **Full App Demo** | [![SFWF Demo](media/demo-thumbnail.png)](media/demo.mp4) |
-| **SEO Configuration** | [![SEO](media/seo-thumb.png)](media/seo.mp4) |
+| **Full App Demo** | [![SFWF Demo](media/demo-thumbnail.png)](https://www.youtube.com/watch?v=A6ciRiIj8Wk&t=29s) |
+| **SEO Configuration** | [![SEO](media/seo-thumb.png)](https://www.youtube.com/watch?v=eyeVcRemY0A) |
 
 ---
 
@@ -52,7 +52,7 @@
 
 ```yaml
 dependencies:
-  sfwf: ^2.0.8
+  sfwf: ^2.0.9
 ```
 
 ```bash
@@ -1463,8 +1463,8 @@ Use SFWF 2.0.6+ — all `dart:io` dependencies use conditional exports.
 
 | Topic | Video |
 |-------|-------|
-| Full App Demo | [![Demo](media/demo-thumbnail.png)](media/demo.mp4) |
-| SEO Configuration | [![SEO](media/seo-thumb.png)](media/seo.mp4) |
+| Full App Demo | [![Demo](media/demo-thumbnail.png)](https://www.youtube.com/watch?v=A6ciRiIj8Wk) |
+| SEO Configuration | [![SEO](media/seo-thumb.png)](https://www.youtube.com/watch?v=eyeVcRemY0A) |
 
 ---
 
